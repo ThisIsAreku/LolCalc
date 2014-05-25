@@ -1,0 +1,87 @@
+<div class="row">
+	<div class="col-md-9" id="runes-matrix">
+		<div class="row">
+			<div class="col-md-4">
+				<h4>Glyphe</h4>
+				<div class="well well-sm rune-section rune-type-blue" data-runeType="blue">
+				</div>
+			</div>
+			<div class="col-md-4">
+				<h4>Marque</h4>
+				<div class="well well-sm rune-section rune-type-red" data-runeType="red">
+				</div>
+			</div>
+			<div class="col-md-4">
+				<h4>Sceau</h4>
+				<div class="well well-sm rune-section rune-type-yellow" data-runeType="yellow">
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<h4>Quintessence</h4>
+				<div class="well well-sm rune-section rune-section-quintessences rune-type-black" data-runeType="black">
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-3" id="runes-selector">
+		<div id="tier-selector">
+			<div class="btn-group" data-toggle="buttons">
+				<label class="btn btn-primary active">
+					<input type="radio" name="tier-select" value="1" checked="checked"> Tiers 1
+				</label>
+				<label class="btn btn-primary">
+					<input type="radio" name="tier-select" value="2"> Tiers 2
+				</label>
+				<label class="btn btn-primary">
+					<input type="radio" name="tier-select" value="3"> Tiers 3
+				</label>
+			</div>
+		</div>
+		<div class="well well-sm">
+			<ul class="nav nav-tabs" id="runes-tabs">
+				<li class="active"><a href="#runes-list-blue" data-toggle="tab">Glyphes</a></li>
+				<li><a href="#runes-list-red" data-toggle="tab">Marques</a></li>
+				<li><a href="#runes-list-yellow" data-toggle="tab">Sceaux</a></li>
+				<li><a href="#runes-list-black" data-toggle="tab">Quintessences</a></li>
+			</ul>
+			<input type="text" class="form-control" id="runes-search" placeholder="Rechercher" />
+			<div class="tab-content" id="runes-list">
+				<div class="tab-pane active" id="runes-list-blue">
+					<ul class="list-group">
+					</ul>
+				</div>
+				<div class="tab-pane" id="runes-list-red">
+					<ul class="list-group">
+					</ul>
+				</div>
+				<div class="tab-pane" id="runes-list-yellow">
+					<ul class="list-group">
+					</ul>
+				</div>
+				<div class="tab-pane" id="runes-list-black">
+					<ul class="list-group">
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	var runesCount = {
+		blue: 9,
+		red: 9,
+		yellow: 9,
+		black: 3
+	}
+	for(var runeType in runesCount){
+		var base = $('#runes-matrix .rune-type-'+runeType);
+		for (var i = runesCount[runeType] - 1; i >= 0; i--) {
+			base.append($('<a />', {
+				href: '#',
+				'class': 'rune-drop droppable'
+			}));
+		};
+	}
+</script>

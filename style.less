@@ -1,0 +1,102 @@
+body{
+	padding: 50px;
+	padding-top: 0;
+	overflow-y: scroll;
+}
+
+.not-selectable{
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+#graph, #detail{
+	height: 300px;
+}
+#graph-legend .legendLabel{
+	padding-right: 10px;
+	padding-left: 5px;
+}
+#detail .list-group, #runes-list .list-group{
+	margin-bottom: 0;
+}
+
+#tier-selector{
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+.draggable{
+	cursor: pointer;
+}
+
+.rune-section{
+	text-align: center;
+}
+.rune-drop{
+	width: 64px;
+	height: 64px;
+	display: inline-block;
+	background-color: rgba(0, 0, 0, 0.5);
+	border-radius: 5px;
+	margin: 1px;
+
+	.rune-section-quintessences &{
+		margin: 5px 20px;
+	}
+	&.dropped{
+		background-color: rgba(0, 0, 0, 0.2);
+		.remove{
+			display: inline-block;
+		}
+	}
+	&.drop-hover{
+		background-color: rgba(0, 0, 0, 0.8);
+	}
+	.remove{
+		right: -0.2em;
+		top: -0.5em;
+		width: 16px;
+		height: 16px;
+		position: relative;
+		color: red;
+		float: right;
+		display: none;
+		font-size: 1.5em;
+	}
+}
+
+
+.rune-img, .champion-img{
+	vertical-align: middle;
+	background-repeat: no-repeat;
+	width: 48px;
+	height: 48px;
+	display: inline-block;
+}
+
+#runes-search{
+	margin-top: -1px;
+	border-radius: 0;
+}
+#runes-list{
+	vertical-align: middle;
+	height: 255px;
+	li span.name{
+		margin-left: 10px;
+	}
+	.list-group-item:first-child{
+		border-radius: 0;
+		border-top: none;
+	}
+}
+
+#detail{
+	padding-left: 0;
+	li{
+		list-style: none;
+	}
+}

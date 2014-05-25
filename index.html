@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>LolCalc</title>
+	<link rel="stylesheet" type="text/css" href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/css/bootstrap.min.css">
+	<link rel="stylesheet/less" type="text/css" href="style.less">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/less.js/1.7.0/less.min.js"></script>
+</head>
+<body class="not-selectable">
+<h1>League Of Legends Build Calculator <small>Work in progress...</small></h1>
+<div class="row">
+	<div class="col-md-3">
+		<div id="detail">
+			<div class="list-group">
+			</div>
+		</div>
+	</div>
+	<div class="col-md-9">
+		<div class="well" id="graph">
+		</div>
+		<div id="graph-legend"></div>
+	</div>
+</div>
+<div class="row">
+	<div class="col-md-12">
+		<div id="save-controls" class="pull-right">
+			<button type="button" class="btn btn-default">Enregistrer</button>
+		</div>
+		<div id="page-selector">
+			<button type="button" class="btn btn-danger rm-page" disabled>Supprimer</button>
+			<div class="btn-group" data-toggle="buttons">
+				<label class="btn btn-primary active">
+					<input type="radio" name="page-select" value="0" checked="checked">1
+				</label>
+			</div>
+			<button type="button" class="btn btn-default add-page">+</button>
+		</div>
+	</div>
+</div>
+<br class="clearfix" />
+<ul class="nav nav-tabs" id="build-tabs">
+	<li><a href="sections/runes.html" data-target="#current-runes-page" data-category="runes" data-toggle="tab">Runes</a></li>
+	<li><a href="sections/masteries.html" data-target="#current-masteries-page" data-category="masteries" data-toggle="tab">Maitrises</a></li>
+	<li><a href="sections/items.html" data-target="#current-items-page" data-category="items" data-toggle="tab">Objets</a></li>
+	<li><a href="sections/champion.html" data-target="#current-champion-page" data-category="champion" data-toggle="tab">Champion</a></li>
+</ul>
+<div class="tab-content">
+<br class="clearfix" />
+	<div class="tab-pane" id="current-runes-page"></div>
+	<div class="tab-pane" id="current-masteries-page"></div>
+	<div class="tab-pane" id="current-items-page"></div>
+	<div class="tab-pane" id="current-champion-page"></div>
+</div>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-growl/1.0.0/jquery.bootstrap-growl.min.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.resize.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/flot/0.8.2/jquery.flot.crosshair.min.js"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-overscroll/1.7.7/jquery.overscroll.min.js"></script>
+
+<script src="js/DataLoader.js"></script>
+<script src="js/LolCalc.js"></script>
+<script src="js/script.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
