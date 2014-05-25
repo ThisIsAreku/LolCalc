@@ -17,7 +17,7 @@
 		</div>
 	</div>
 	<div class="col-md-9">
-		<div class="well" id="graph">
+		<div id="graph">
 		</div>
 		<div id="graph-legend"></div>
 	</div>
@@ -38,19 +38,20 @@
 		</div>
 	</div>
 </div>
-<br class="clearfix" />
-<ul class="nav nav-tabs" id="build-tabs">
-	<li><a href="sections/runes.html" data-target="#current-runes-page" data-category="runes" data-toggle="tab">Runes</a></li>
-	<li><a href="sections/masteries.html" data-target="#current-masteries-page" data-category="masteries" data-toggle="tab">Maitrises</a></li>
-	<li><a href="sections/items.html" data-target="#current-items-page" data-category="items" data-toggle="tab">Objets</a></li>
-	<li><a href="sections/champion.html" data-target="#current-champion-page" data-category="champion" data-toggle="tab">Champion</a></li>
-</ul>
-<div class="tab-content">
-<br class="clearfix" />
-	<div class="tab-pane" id="current-runes-page"></div>
-	<div class="tab-pane" id="current-masteries-page"></div>
-	<div class="tab-pane" id="current-items-page"></div>
-	<div class="tab-pane" id="current-champion-page"></div>
+<div id="build-configuration">
+	<div class="mask-overlay"><div class="title h1">Chargement en cours...</div></div>
+	<ul class="nav nav-tabs" id="build-tabs">
+		<li><a href="sections/runes.html" data-target="#current-runes-page" data-category="runes" data-toggle="tab">Runes</a></li>
+		<li><a href="sections/masteries.html" data-target="#current-masteries-page" data-category="masteries" data-toggle="tab">Maitrises</a></li>
+		<li><a href="sections/items.html" data-target="#current-items-page" data-category="items" data-toggle="tab">Objets</a></li>
+		<li><a href="sections/champion.html" data-target="#current-champion-page" data-category="champions" data-toggle="tab">Champion</a></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane" id="current-runes-page"><p class="text-muted">Chargement...</p></div>
+		<div class="tab-pane" id="current-masteries-page"><p class="text-muted">Chargement...</p></div>
+		<div class="tab-pane" id="current-items-page"><p class="text-muted">Chargement...</p></div>
+		<div class="tab-pane" id="current-champion-page"><p class="text-muted">Chargement...</p></div>
+	</div>
 </div>
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
@@ -63,6 +64,8 @@
 
 <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-overscroll/1.7.7/jquery.overscroll.min.js"></script>
 
+<script src="js/ModalWindow.js"></script>
+<script src="js/LoadingBar.js"></script>
 <script src="js/DataLoader.js"></script>
 <script src="js/LolCalc.js"></script>
 <script src="js/script.js"></script>

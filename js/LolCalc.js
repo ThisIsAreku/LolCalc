@@ -1,7 +1,17 @@
-function LolCalc () {
+var LolCalc = new function () {
 	this.runePageValues = [];
 	this.runePages = [];
 	this.currentRunePage = 0;
+	this.builds = {};
+	this.currentBuildIndex = 0;
+	this.builds[0] = new Build();
+
+
+	this.getBuild = function (n){
+		if('undefined' === typeof n)
+			n = this.currentBuildIndex;
+		return this.builds[n];
+	}
 }
 
 function RuneSet () {

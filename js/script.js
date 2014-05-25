@@ -5,20 +5,6 @@ String.prototype.endsWithSkeet = function(str) {
 	return (lastIndex != -1) && (lastIndex + str.length == this.length);
 }
 
-var lolCalc = new LolCalc();
-/*
-var RuneTool = {
-	currentTier: 1,
-	tiers: {
-		1: [],
-		2: [],
-		3: [],
-	},
-	currentRunePage: 0,
-	runePageValues : [],
-	runePages: [],
-};*/
-
 function setRune($el, runeId){
 	var rune = DataLoader.rune.data[runeId];
 	$el.css({

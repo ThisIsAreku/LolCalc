@@ -1,7 +1,49 @@
 body{
 	padding: 50px;
 	padding-top: 0;
-	overflow-y: scroll;
+	overflow-y: hidden;
+}
+
+#loading-bar{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 2px;
+	.inner{
+		background-color: #00a5cf;
+		position: relative;
+		left: 0;
+		top: 0;
+		height: 2px;
+		width: 0;
+		/*transition*/
+		-webkit-transition:width 500ms ease;
+		   -moz-transition:width 500ms ease;
+		     -o-transition:width 500ms ease;
+		        transition:width 500ms ease;
+	}
+}
+#build-configuration{
+	position: relative;
+	height: 480px;
+}
+#build-configuration .mask-overlay{
+	text-align: center;
+	position: absolute;
+	background-color: #FFF;
+	width: 100%;
+	height: 100%;
+	z-index: 100;
+	float: left;
+	opacity: 0.9;
+	.title{
+		margin-top: 160px;
+	}
+}
+
+#build-tabs, #page-selector{
+	margin-bottom: 5px;
 }
 
 .not-selectable{
@@ -98,5 +140,31 @@ body{
 	padding-left: 0;
 	li{
 		list-style: none;
+	}
+}
+
+#champions-list{
+	padding-left: 20px;
+}
+#selected-champion{
+	color: #FFF;
+	.champion-largeimg{
+		margin: 10px;
+		float: left;
+		width: 120px;
+		height: 120px;
+	}
+	.champion-spash{
+		position: absolute;
+		z-index: -1;
+		//height: 100%;
+		max-width: 100%;
+	}
+	.champion-name, .champion-title {
+		text-shadow: 1px 1px 10px #000, 1px 1px 5px #111, 0 0 2px #222;
+	}
+	.champion-lore{
+		border-radius: 5px;
+		background: url("img/mask.png") repeat;
 	}
 }

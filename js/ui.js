@@ -18,51 +18,27 @@ $(document).on('contextmenu', function(e){
 	e.preventDefault();
 })*/
 
-$('#runes-tabs a').click(function (e) {
-	e.preventDefault();
-	$('#runes-search').val('').change();
-	$(this).tab('show')
-});
+$(DataLoader).on('loadProgress', function (e, current, max){
+	var percent = current * 100 / max;
+	console.log(percent);
+	LoadingBar.setValue(percent);
+	if(percent == 100){
+		$('#build-configuration .mask-overlay').fadeOut();
+		$('#build-tabs a:first').click();
+	}
+})
+
+
 $('#build-tabs a').click(function (e) {
 	e.preventDefault();
 	var $this = $(this);
-	var $target = $($(this).data('target'));
-	if($target.data('loaded') === true)
-		return ;
-
-	var source = $(this).attr('href');
-	$target.load(source, function(){
-		$target.data('loaded', true);
-		DataLoader.update($this.data('category'));
-		$this.tab('show');
-	});
-});
-
-$('.rune-section').each(function(){
-	$(this).data('runeType', $(this).attr('data-runeType'));
-})
-
-$('#current-runes-page .rune-drop').each(function(){
-	$(this).append('<a href="#" class="remove"><span class="glyphicon glyphicon-remove-circle"></span></a>');
-})
-$('#current-runes-page').on('click', 'a.remove', function(e){
-	e.preventDefault();
-	clearRune($(this).parent());
-	updateCurrentRunePage();
-});
-$('#current-runes-page').on('dblclick contextmenu', '.droppable', function(e){
-	e.preventDefault();
-	clearRune($(this));
-	updateCurrentRunePage();
-});
-
-$('#tier-selector input[name="tier-select"]').change(function(){
-	var newTier = $(this).val();
-	if(newTier >= 1 && newTier <= 3){
-		lolCalc.currentTier = newTier;
-		$('#runes-search').val('').change();
-		console.log("Switched to Tier#"+newTier);
-		updateRuneList();
+	var $target = $($this.data('target'));
+	if($target.data('loaded') !== true){
+		var source = $this.attr('href');
+		$target.load(source, function(){
+			$target.data('loaded', true);
+			DataLoader.update($this.data('category'));
+		});
 	}
 });
 
@@ -78,16 +54,22 @@ $('#page-selector .add-page').click(function(e){
 });
 $('#page-selector .rm-page').click(function(e){
 	e.preventDefault();
-	delete lolCalc.runePages[lolCalc.currentRunePage]
-	delete lolCalc.runePageValues[lolCalc.currentRunePage]
-	$('#page-selector .btn-group input[value="'+lolCalc.currentRunePage+'"]').parent().remove()
+	delete LolCalc.runePages[LolCalc.currentRunePage]
+	delete LolCalc.runePageValues[LolCalc.currentRunePage]
+	$('#page-selector .btn-group input[value="'+LolCalc.currentRunePage+'"]').parent().remove()
 	$('#page-selector .btn-group input:first').click()
 });
 
 $('#page-selector').on('change', 'input[name="page-select"]', function(e){
 	switchRunePage($(this).val());
 });
-$('#current-runes-page').on('click contextmenu', '#runes-list .draggable', function(e){
+
+
+/*****************/
+/***** RUNES *****/
+/*****************/
+$('#current-runes-page')
+.on('click contextmenu', '.draggable', function(e){
 	e.preventDefault();
 	console.log('f');
 	var $this = $(this), $parent = $this.parent();
@@ -98,15 +80,13 @@ $('#current-runes-page').on('click contextmenu', '#runes-list .draggable', funct
 
 	setFullRune($target, $this.data('runeId'));
 	updateCurrentRunePage();
-});
-$('#champions-list').on('click', '.champion-img', function(e){
+})
+.on('dblclick contextmenu', '.droppable', function(e){
 	e.preventDefault();
-	var champKey = $(this).data('champId');
-	var champ = DataLoader.champion.data[champKey];
-	$('#current-champion-img').attr('src', DataLoader.versions.cdn+'/'+DataLoader.versions.n.champion+'/img/'+champ.image.group+'/'+champ.image.full);
-});
-
-$('#runes-search').on('change keydown keyup', function (e){
+	clearRune($(this));
+	updateCurrentRunePage();
+})
+.on('change keydown keyup', '#runes-search', function (e){
 	var filter = $(this).val();
 	$('#runes-list .tab-pane.active .list-group-item').each(function(){
 		var text = $(this).data('runeName');
@@ -116,7 +96,54 @@ $('#runes-search').on('change keydown keyup', function (e){
 			$(this).addClass('hidden');
 		}
 	})
+})
+.on('click', '#runes-tabs a', function (e) {
+	e.preventDefault();
+	$('#runes-search').val('').change();
+	//$(this).tab('show')
+})
+.on('change', '#tier-selector input[name="tier-select"]', function (e){
+	var newTier = $(this).val();
+	if(newTier >= 1 && newTier <= 3){
+		LolCalc.currentTier = newTier;
+		$('#runes-search').val('').change();
+		console.log("Switched to Tier#"+newTier);
+		DataLoader.currentTier = newTier;
+		DataLoader.updateRunesList();
+	}
 });
+
+
+/*****************/
+/***** CHAMP *****/
+/*****************/
+$('#current-champion-page')
+.on('click', '#champions-list .champion-img', function (e){
+	e.preventDefault();
+	var champKey = $(this).data('champId');
+	var $selectedChamp = $('#selected-champion');
+	LolCalc.getBuild().champion.key = champKey;
+	$('.champion-largeimg', $selectedChamp).css('background-image', 'url('+DataLoader.getChampionLargeIcon(champKey)+')');
+	$('.champion-spash', $selectedChamp).attr('src', DataLoader.getChampionArtwork(champKey, 0));
+	DataLoader.loadChampionInfo(champKey, function (data){
+		$('.champion-name', $selectedChamp).text(data.name);
+		$('.champion-title', $selectedChamp).text(data.title);
+		$('.champion-largeimg', $selectedChamp).attr('title', data.blurb).tooltip().attr('data-original-title', data.blurb);
+		console.log(data);
+	});
+})
+.on('click', '#selected-champion .champion-largeimg', function (e){
+	e.preventDefault();
+	DataLoader.loadChampionInfo(LolCalc.getBuild().champion.key, function (data){
+		ModalWindow.display(data.name + ' - ' + data.title, data.lore);
+	});
+});
+
+
+
+
+
+
 
 $('#detail .list-group').on('click', '.stat', function(e){
 	e.preventDefault();
@@ -164,13 +191,13 @@ $('#graph').on('plothover',  function (event, pos, item) {
 });
 
 function updateCurrentRunePage(){
-	lolCalc.runePages[lolCalc.currentRunePage] = [];
+	LolCalc.runePages[LolCalc.currentRunePage] = [];
 	var runeType;
 	$('#current-runes-page .rune-drop.dropped').each(function(){
 		runeType = $(this).parent().data('runeType');
-		if(typeof lolCalc.runePages[lolCalc.currentRunePage][runeType] == 'undefined')
-			lolCalc.runePages[lolCalc.currentRunePage][runeType] = [];
-		lolCalc.runePages[lolCalc.currentRunePage][runeType].push($(this).data('runeId'));
+		if(typeof LolCalc.runePages[LolCalc.currentRunePage][runeType] == 'undefined')
+			LolCalc.runePages[LolCalc.currentRunePage][runeType] = [];
+		LolCalc.runePages[LolCalc.currentRunePage][runeType].push($(this).data('runeId'));
 	});
 	localStorage
 	updateCurrentRunePageValue();
@@ -178,23 +205,23 @@ function updateCurrentRunePage(){
 
 function updateCurrentRunePageValue(){
 	console.log("Updating Rune stats value");
-	if(typeof lolCalc.runePages[lolCalc.currentRunePage] == 'undefined'){
+	if(typeof LolCalc.runePages[LolCalc.currentRunePage] == 'undefined'){
 		console.log("Unknown runePages");
 		updateRuneStatsDisplay();
 		return;
 	}
-	lolCalc.runePageValues[lolCalc.currentRunePage] = jQuery.extend({}, DataLoader.rune.basic.stats);
+	LolCalc.runePageValues[LolCalc.currentRunePage] = jQuery.extend({}, DataLoader.rune.basic.stats);
 	var runeGroup;
 	var runeId;
 	var rune;
-	for(var runeType in lolCalc.runePages[lolCalc.currentRunePage]){
-		runeGroup = lolCalc.runePages[lolCalc.currentRunePage][runeType];
+	for(var runeType in LolCalc.runePages[LolCalc.currentRunePage]){
+		runeGroup = LolCalc.runePages[LolCalc.currentRunePage][runeType];
 		for (var i = runeGroup.length - 1; i >= 0; i--) {
 			runeId = runeGroup[i];
 			rune = DataLoader.rune.data[runeId];
 			for(var statName in rune.stats)
 			{
-				lolCalc.runePageValues[lolCalc.currentRunePage][statName] += rune.stats[statName];
+				LolCalc.runePageValues[LolCalc.currentRunePage][statName] += rune.stats[statName];
 			}
 		}
 	}
@@ -216,16 +243,16 @@ function updateRuneStatsDisplay(){
 	console.log("Updating Rune stats display");
 	var $detailList = $('#detail .list-group');
 	$detailList.empty();
-	if(typeof(lolCalc.runePageValues[lolCalc.currentRunePage]) == 'undefined'){
+	if(typeof(LolCalc.runePageValues[LolCalc.currentRunePage]) == 'undefined'){
 		console.log("Unknown runePages");
 		return;
 	}
 	var opcurrentStatName = getOppositStat(currentStat);
-	for(var statName in lolCalc.runePageValues[lolCalc.currentRunePage])
+	for(var statName in LolCalc.runePageValues[LolCalc.currentRunePage])
 	{
-		if(lolCalc.runePageValues[lolCalc.currentRunePage][statName] != 0)
+		if(LolCalc.runePageValues[LolCalc.currentRunePage][statName] != 0)
 		{
-			var stat = $('<a href="#" class="list-group-item stat '+statName+'" title="'+statName+'" data-statName="'+statName+'"><span class="badge">' + lolCalc.runePageValues[lolCalc.currentRunePage][statName] + '</span>' + DataLoader.language.data[statName] + '</a>')
+			var stat = $('<a href="#" class="list-group-item stat '+statName+'" title="'+statName+'" data-statName="'+statName+'"><span class="badge">' + LolCalc.runePageValues[LolCalc.currentRunePage][statName] + '</span>' + DataLoader.language.data[statName] + '</a>')
 				.data('statName', statName);
 			if(currentStat != null && (statName == currentStat || statName == opcurrentStatName)){
 				stat.addClass('active');
@@ -247,23 +274,23 @@ function doGraph(statName){
 	console.log("Drawing stats of " + statName);
 	currentGraphStat = statName;
 	var statGraph = [];
-	for (var i = 0; i < lolCalc.runePages.length; i++) {
-		if(typeof(lolCalc.runePageValues[i]) == 'undefined')
+	for (var i = 0; i < LolCalc.runePages.length; i++) {
+		if(typeof(LolCalc.runePageValues[i]) == 'undefined')
 			continue;
 		console.log("Page #"+i);
 		var runePageGraph = [];
 		var opStatName = getOppositStat(statName);
 		console.log("opStatName: " + opStatName);
 		var statValue,perLevelStatValue;
-		if(typeof(lolCalc.runePageValues[i][statName]) == 'undefined')
+		if(typeof(LolCalc.runePageValues[i][statName]) == 'undefined')
 			statValue = 0;
 		else
-			statValue = lolCalc.runePageValues[i][statName];
+			statValue = LolCalc.runePageValues[i][statName];
 
-		if(typeof(lolCalc.runePageValues[i][opStatName]) == 'undefined')
+		if(typeof(LolCalc.runePageValues[i][opStatName]) == 'undefined')
 			perLevelStatValue = 0;
 		else
-			perLevelStatValue = lolCalc.runePageValues[i][opStatName];
+			perLevelStatValue = LolCalc.runePageValues[i][opStatName];
 
 		if(statValue == 0 && perLevelStatValue == 0)
 			continue;
@@ -334,16 +361,16 @@ function getOppositStat(statName){
 function switchRunePage(newPageId){
 	console.log("Switched to Page#"+newPageId);
 	$('#page-selector .rm-page').attr('disabled', newPageId == 0);
-	lolCalc.currentRunePage = newPageId;
+	LolCalc.currentRunePage = newPageId;
 	$('#current-runes-page .rune-drop.dropped').each(function(){
 		clearRune($(this));
 		$(this).removeClass('.dropped');
 	});
-	if(typeof lolCalc.runePages[lolCalc.currentRunePage] != 'undefined'){
+	if(typeof LolCalc.runePages[LolCalc.currentRunePage] != 'undefined'){
 		var runeGroup;
 		var runeType
-		for(runeType in lolCalc.runePages[lolCalc.currentRunePage]){
-			runeGroup = lolCalc.runePages[lolCalc.currentRunePage][runeType];
+		for(runeType in LolCalc.runePages[LolCalc.currentRunePage]){
+			runeGroup = LolCalc.runePages[LolCalc.currentRunePage][runeType];
 			for (var i = runeGroup.length - 1; i >= 0; i--) {
 				setFullRune($('#current-runes-page .rune-type-'+runeType+' .droppable:not(.dropped):first'), runeGroup[i]);
 			}
@@ -391,7 +418,7 @@ function updateLegend() {
 			y = p1[1] + (p2[1] - p1[1]) * (pos.x - p1[0]) / (p2[0] - p1[0]);
 		}
 
-		console.log(y);
+		//console.log(y);
 
 		legends.eq(i).text(series.label.replace(/=.*/, "= " + y.toFixed(2)));
 	}
