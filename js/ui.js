@@ -128,7 +128,7 @@ $('#current-champion-page')
 	DataLoader.loadChampionInfo(champKey, function (data){
 		$('.champion-name', $selectedChamp).text(data.name);
 		$('.champion-title', $selectedChamp).text(data.title);
-		$('.champion-largeimg', $selectedChamp).attr('title', data.blurb).tooltip().attr('data-original-title', data.blurb);
+		$('.champion-largeimg', $selectedChamp).attr('title', data.blurb).tooltip().attr('data-original-title', data.blurb).attr('title', '');
 		console.log(data);
 	});
 })
