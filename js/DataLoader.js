@@ -8,20 +8,28 @@ var Riot = {
 	}
 }
 var DataLoader = new function () {
+	var loadProgress = 0;
+	var maxLoadProgress = 6;
 	var it = this;
 	this.currentTier = 1;
 	this.versions = null;
 	this.tiers = {};
 	this.rune = null;
 	this.champion = null;
+	this.championDetail = {};
 	this.item = null;
+	this.mastery = null;
 	this.language = null;
 
+	$(it).trigger('loadProgress', [0, maxLoadProgress]);
 	$.getScript('http://ddragon.leagueoflegends.com/realms/euw.js', function(script){
 		it.versions = Riot.DDragon.m;
+		$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
 		it.loadRunes();
 		it.loadLang();
 		it.loadChampions();
+		it.loadItems();
+		it.loadMasteries();
 	});
 
 	this.loadRunes = function(){
@@ -34,6 +42,7 @@ var DataLoader = new function () {
 					it.tiers[data[runeId].rune.tier] = [];
 				it.tiers[data[runeId].rune.tier].push(runeId);
 			}
+			$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
 		});
 	}
 
@@ -41,6 +50,7 @@ var DataLoader = new function () {
 		var url = this.versions.cdn+'/'+this.versions.n.language+'/data/fr_FR/language.json';
 		$.getJSON(url, function(data){
 			it.language = data;
+			$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
 		});
 	}
 
@@ -48,6 +58,23 @@ var DataLoader = new function () {
 		var url = this.versions.cdn+'/'+this.versions.n.champion+'/data/fr_FR/champion.json';
 		$.getJSON(url, function(data){
 			it.champion = data;
+			$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
+		});
+	}
+
+	this.loadItems = function(){
+		var url = this.versions.cdn+'/'+this.versions.n.item+'/data/fr_FR/item.json';
+		$.getJSON(url, function(data){
+			it.item = data;
+			$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
+		});
+	}
+
+	this.loadMasteries = function(){
+		var url = this.versions.cdn+'/'+this.versions.n.mastery+'/data/fr_FR/mastery.json';
+		$.getJSON(url, function(data){
+			it.mastery = data;
+			$(it).trigger('loadProgress', [++loadProgress, maxLoadProgress]);
 		});
 	}
 
@@ -58,6 +85,10 @@ var DataLoader = new function () {
 	};
 
 	this.updateRunesList = function() {
+		if(this.rune === null){
+			setTimeout(function (){ DataLoader.updateRunesList() }, 1000);
+			return;
+		}
 		var rune, runeId;
 		var runeList = this.getRuneTier();
 		$('#runes-list ul.list-group').empty();
@@ -83,7 +114,7 @@ var DataLoader = new function () {
 		//updateDraggable();
 	}
 
-	this.updateChampionList = function() {
+	this.updateChampionsList = function() {
 		var $championsList = $('#champions-list');
 		$championsList.empty();
 		for (var champKey in this.champion.data) {
@@ -108,4 +139,32 @@ var DataLoader = new function () {
 			tier = this.currentTier;
 		return this.tiers[tier];
 	};
+
+
+
+	this.getChampionLargeIcon = function (key) {
+		return this.versions.cdn+'/'+this.versions.n.champion+'/img/'+this.champion.data[key].image.group+'/'+this.champion.data[key].image.full;
+	}
+	this.getChampionArtwork = function (key, index, callback) {
+		return this.versions.cdn+'/img/champion/splash/'+key + '_'+index+'.jpg';
+	}
+
+	this.loadChampionInfo = function (key, callback) {
+		if('undefined' !== typeof this.championDetail[key]){
+			callback(this.championDetail[key].data[key], false);
+			return this.championDetail[key].data[key];
+		}
+
+		if('undefined' === typeof this.champion.data[key]){
+			callback(null);
+			return false;
+		}
+
+		var url = this.versions.cdn+'/'+this.versions.n.champion+'/data/fr_FR/champion/'+key+'.json';
+		$.getJSON(url, function(data){
+			it.championDetail[key] = data;
+			callback(data.data[key], true);
+		});
+		return null;
+	}
 }
