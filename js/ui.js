@@ -13,10 +13,10 @@ $('#runes-list').css('height', height+'px').overscroll({
 	cancelOn: '.draggable'
 });*/
 
-/*
+
 $(document).on('contextmenu', function(e){
 	e.preventDefault();
-})*/
+})
 
 $(DataLoader).on('loadProgress', function (e, current, max){
 	var percent = current * 100 / max;
