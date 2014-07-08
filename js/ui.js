@@ -1,5 +1,6 @@
 "use strict";
 
+$.fn.tooltip.Constructor.DEFAULTS.container = 'body';
 var currentStat = null;
 
 /*
@@ -15,12 +16,11 @@ $('#runes-list').css('height', height+'px').overscroll({
 
 
 $(document).on('contextmenu', function(e){
-	e.preventDefault();
+	//e.preventDefault();
 })
 
 $(DataLoader).on('loadProgress', function (e, current, max){
 	var percent = current * 100 / max;
-	console.log(percent);
 	LoadingBar.setValue(percent);
 	if(percent == 100){
 		$('#build-configuration .mask-overlay').fadeOut();
@@ -71,20 +71,23 @@ $('#page-selector').on('change', 'input[name="page-select"]', function(e){
 $('#current-runes-page')
 .on('click contextmenu', '.draggable', function(e){
 	e.preventDefault();
-	console.log('f');
 	var $this = $(this), $parent = $this.parent();
 
-	var $target = $('#current-runes-page .rune-type-'+$this.data('runeType')+' .droppable:not(.dropped):first');
-	if($target.length == 0)
-		return;
+	console.log($this.data('runeId'));
 
+	if(!~LolCalc.getBuild().runes.appendRune($this.data('runeId')))
+		return console.log("entry failed");
+	var $target = $('#current-runes-page .rune-type-'+$this.data('runeType')+' .droppable:not(.dropped):first');
 	setFullRune($target, $this.data('runeId'));
-	updateCurrentRunePage();
+	updateRuneStatsDisplay();
 })
 .on('dblclick contextmenu', '.droppable', function(e){
 	e.preventDefault();
-	clearRune($(this));
-	updateCurrentRunePage();
+	var $this = $(this);
+	if(!LolCalc.getBuild().runes.removeRune($this.data('runeId')))
+		return;
+	clearRune($this);
+	updateRuneStatsDisplay();
 })
 .on('change keydown keyup', '#runes-search', function (e){
 	var filter = $(this).val();
@@ -190,44 +193,6 @@ $('#graph').on('plothover',  function (event, pos, item) {
 	}
 });
 
-function updateCurrentRunePage(){
-	LolCalc.runePages[LolCalc.currentRunePage] = [];
-	var runeType;
-	$('#current-runes-page .rune-drop.dropped').each(function(){
-		runeType = $(this).parent().data('runeType');
-		if(typeof LolCalc.runePages[LolCalc.currentRunePage][runeType] == 'undefined')
-			LolCalc.runePages[LolCalc.currentRunePage][runeType] = [];
-		LolCalc.runePages[LolCalc.currentRunePage][runeType].push($(this).data('runeId'));
-	});
-	localStorage
-	updateCurrentRunePageValue();
-}
-
-function updateCurrentRunePageValue(){
-	console.log("Updating Rune stats value");
-	if(typeof LolCalc.runePages[LolCalc.currentRunePage] == 'undefined'){
-		console.log("Unknown runePages");
-		updateRuneStatsDisplay();
-		return;
-	}
-	LolCalc.runePageValues[LolCalc.currentRunePage] = jQuery.extend({}, DataLoader.rune.basic.stats);
-	var runeGroup;
-	var runeId;
-	var rune;
-	for(var runeType in LolCalc.runePages[LolCalc.currentRunePage]){
-		runeGroup = LolCalc.runePages[LolCalc.currentRunePage][runeType];
-		for (var i = runeGroup.length - 1; i >= 0; i--) {
-			runeId = runeGroup[i];
-			rune = DataLoader.rune.data[runeId];
-			for(var statName in rune.stats)
-			{
-				LolCalc.runePageValues[LolCalc.currentRunePage][statName] += rune.stats[statName];
-			}
-		}
-	}
-	updateRuneStatsDisplay();
-}
-
 function updateDraggable(){
 	$('.draggable').draggable({
 		appendTo: "body",
@@ -243,16 +208,15 @@ function updateRuneStatsDisplay(){
 	console.log("Updating Rune stats display");
 	var $detailList = $('#detail .list-group');
 	$detailList.empty();
-	if(typeof(LolCalc.runePageValues[LolCalc.currentRunePage]) == 'undefined'){
-		console.log("Unknown runePages");
-		return;
-	}
+
+	var stats = LolCalc.getBuild().compiledStats;
+
 	var opcurrentStatName = getOppositStat(currentStat);
-	for(var statName in LolCalc.runePageValues[LolCalc.currentRunePage])
+	for(var statName in stats)
 	{
-		if(LolCalc.runePageValues[LolCalc.currentRunePage][statName] != 0)
+		if(stats[statName] != 0)
 		{
-			var stat = $('<a href="#" class="list-group-item stat '+statName+'" title="'+statName+'" data-statName="'+statName+'"><span class="badge">' + LolCalc.runePageValues[LolCalc.currentRunePage][statName] + '</span>' + DataLoader.language.data[statName] + '</a>')
+			var stat = $('<a href="#" class="list-group-item stat '+statName+'" title="'+statName+'" data-statName="'+statName+'"><span class="badge">' + stats[statName] + '</span>' + DataLoader.language.data[statName] + '</a>')
 				.data('statName', statName);
 			if(currentStat != null && (statName == currentStat || statName == opcurrentStatName)){
 				stat.addClass('active');
@@ -274,23 +238,22 @@ function doGraph(statName){
 	console.log("Drawing stats of " + statName);
 	currentGraphStat = statName;
 	var statGraph = [];
-	for (var i = 0; i < LolCalc.runePages.length; i++) {
-		if(typeof(LolCalc.runePageValues[i]) == 'undefined')
-			continue;
+	for (var i = 0; i < LolCalc.getBuildCount(); i++) {
+		var stats = LolCalc.getBuild(i).compiledStats;
 		console.log("Page #"+i);
 		var runePageGraph = [];
 		var opStatName = getOppositStat(statName);
 		console.log("opStatName: " + opStatName);
 		var statValue,perLevelStatValue;
-		if(typeof(LolCalc.runePageValues[i][statName]) == 'undefined')
+		if(typeof(stats[statName]) == 'undefined')
 			statValue = 0;
 		else
-			statValue = LolCalc.runePageValues[i][statName];
+			statValue = stats[statName];
 
-		if(typeof(LolCalc.runePageValues[i][opStatName]) == 'undefined')
+		if(typeof(stats[opStatName]) == 'undefined')
 			perLevelStatValue = 0;
 		else
-			perLevelStatValue = LolCalc.runePageValues[i][opStatName];
+			perLevelStatValue = stats[opStatName];
 
 		if(statValue == 0 && perLevelStatValue == 0)
 			continue;
