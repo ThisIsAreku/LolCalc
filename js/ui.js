@@ -29,7 +29,7 @@ var UI = new function(){
 			LoadingBar.setValue(percent, 'Chargement de ' + current + ' sur ' + max);
 			if(percent == 100){
 				$('#build-configuration .mask-overlay').fadeOut();
-				if(window.location.hash == '#')
+				if(window.location.hash == '')
 					$('#build-tabs a:first').click();
 				else
 					$('#build-tabs a[data-category="'+window.location.hash.substr(1)+'"]').click();
