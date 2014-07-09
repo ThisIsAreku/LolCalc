@@ -3,195 +3,112 @@
 $.fn.tooltip.Constructor.DEFAULTS.container = 'body';
 var currentStat = null;
 
-/*
-var heightDiff = ($('#runes-list').offset().top - $('#runes-selector').offset().top);
-var marginDiff = parseInt($('#runes-list').parent().css('paddingBottom')) + parseInt($('#runes-list').parent().css('paddingTop'))
-var height = $('#current-runes-page').height() - (heightDiff + marginDiff*1.5);
-
-$('#runes-list').css('height', height+'px').overscroll({
-	hoverThumbs: true,
-	direction: 'vertical',
-	cancelOn: '.draggable'
-});*/
-
-
-$(document).on('contextmenu', function(e){
-	//e.preventDefault();
+$(document).ready(function(){
+	UI.initialize();
 })
 
-$(DataLoader).on('loadProgress', function (e, current, max){
-	var percent = current * 100 / max;
-	LoadingBar.setValue(percent);
-	if(percent == 100){
-		$('#build-configuration .mask-overlay').fadeOut();
-		$('#build-tabs a:first').click();
+var UI = new function(){
+	var it = this;
+
+	var managers = {
+		'runes': new RunesUI(),
+		'champions': new ChampionsUI()
+	};
+	var currentManager = null;
+	this.getManager = function () {
+		return managers[currentManager];
 	}
-})
+	this.initialize = function (){
+		$(DataLoader).on('loadComplete', function (e){	
+			LolCalc.load(function (){
+				console.log('Data loaded');
+			})
+		})
+		$(DataLoader).on('loadProgress', function (e, current, max){
+			var percent = current * 100 / max;
+			LoadingBar.setValue(percent, 'Chargement de ' + current + ' sur ' + max);
+			if(percent == 100){
+				$('#build-configuration .mask-overlay').fadeOut();
+				if(window.location.hash == '#')
+					$('#build-tabs a:first').click();
+				else
+					$('#build-tabs a[data-category="'+window.location.hash.substr(1)+'"]').click();
+			}
+		})
 
 
-$('#build-tabs a').click(function (e) {
-	e.preventDefault();
-	var $this = $(this);
-	var $target = $($this.data('target'));
-	if($target.data('loaded') !== true){
-		var source = $this.attr('href');
-		$target.load(source, function(){
-			$target.data('loaded', true);
-			DataLoader.update($this.data('category'));
+		$('#build-tabs a').click(function (e) {
+			//e.preventDefault();
+			var $this = $(this);
+			var $target = $($this.data('target'));
+			var category = $this.data('category');
+			window.location.hash = category;
+			if('undefined' !== typeof it.getManager()){
+				console.log('UI: sleep [' + currentManager + ']');
+				it.getManager().sleep();
+			}
+			currentManager = category;
+			if($target.data('loaded') !== true){
+				var source = $this.attr('href');
+				$target.load(source, function(){
+					$target.data('loaded', true);
+					console.log('UI: initialize [' + currentManager + ']');
+					it.getManager().initialize();
+					console.log('UI: wakeup [' + currentManager + ']');
+					it.getManager().wakeup();
+				});
+			}else{
+				console.log('UI: wakeup [' + currentManager + ']');
+				it.getManager().wakeup();
+			}
+		});
+
+		$('#page-selector .add-page').click(function(e){
+			e.preventDefault();
+			var maxPages = $('#page-selector .btn-group input').length;
+			if(maxPages >= 20)
+				return;
+			var maxNum = parseInt($('#page-selector .btn-group input:last').val());
+			var $elemInput = $('<input type="radio" name="page-select" value="'+(maxNum+1)+'" />');
+			$('<label class="btn btn-primary" />').append($elemInput).append(maxNum+2).appendTo($('#page-selector .btn-group'));
+			$elemInput.click();
+		});
+		$('#page-selector .rm-page').click(function(e){
+			e.preventDefault();
+			delete LolCalc.runePages[LolCalc.currentRunePage]
+			delete LolCalc.runePageValues[LolCalc.currentRunePage]
+			$('#page-selector .btn-group input[value="'+LolCalc.currentRunePage+'"]').parent().remove()
+			$('#page-selector .btn-group input:first').click()
+		});
+
+		$('#page-selector').on('change', 'input[name="page-select"]', function(e){
+			switchRunePage($(this).val());
+		});
+
+
+		$('#detail .list-group').on('click', '.stat', function(e){
+			e.preventDefault();
+			$('#detail .list-group .stat').removeClass('active');
+			$(this).addClass('active');
+			var opStat = getOppositStat($(this).data('statName'));
+			$('#detail .list-group .stat.'+opStat).addClass('active');
+			currentStat = $(this).data('statName');
+			doGraph($(this).data('statName'));
+		})
+
+		var updateLegendTimeout = null;
+		var latestPosition = null;
+		var legends;
+		var plot;
+		var currentGraphStat = null;
+		$('#graph').on('plothover',  function (event, pos, item) {
+			latestPosition = pos;
+			if (!updateLegendTimeout) {
+				updateLegendTimeout = setTimeout(updateLegend, 50);
+			}
 		});
 	}
-});
-
-$('#page-selector .add-page').click(function(e){
-	e.preventDefault();
-	var maxPages = $('#page-selector .btn-group input').length;
-	if(maxPages >= 20)
-		return;
-	var maxNum = parseInt($('#page-selector .btn-group input:last').val());
-	var $elemInput = $('<input type="radio" name="page-select" value="'+(maxNum+1)+'" />');
-	$('<label class="btn btn-primary" />').append($elemInput).append(maxNum+2).appendTo($('#page-selector .btn-group'));
-	$elemInput.click();
-});
-$('#page-selector .rm-page').click(function(e){
-	e.preventDefault();
-	delete LolCalc.runePages[LolCalc.currentRunePage]
-	delete LolCalc.runePageValues[LolCalc.currentRunePage]
-	$('#page-selector .btn-group input[value="'+LolCalc.currentRunePage+'"]').parent().remove()
-	$('#page-selector .btn-group input:first').click()
-});
-
-$('#page-selector').on('change', 'input[name="page-select"]', function(e){
-	switchRunePage($(this).val());
-});
-
-
-/*****************/
-/***** RUNES *****/
-/*****************/
-$('#current-runes-page')
-.on('click contextmenu', '.draggable', function(e){
-	e.preventDefault();
-	var $this = $(this), $parent = $this.parent();
-
-	console.log($this.data('runeId'));
-
-	if(!~LolCalc.getBuild().runes.appendRune($this.data('runeId')))
-		return console.log("entry failed");
-	var $target = $('#current-runes-page .rune-type-'+$this.data('runeType')+' .droppable:not(.dropped):first');
-	setFullRune($target, $this.data('runeId'));
-	updateRuneStatsDisplay();
-})
-.on('dblclick contextmenu', '.droppable', function(e){
-	e.preventDefault();
-	var $this = $(this);
-	if(!LolCalc.getBuild().runes.removeRune($this.data('runeId')))
-		return;
-	clearRune($this);
-	updateRuneStatsDisplay();
-})
-.on('change keydown keyup', '#runes-search', function (e){
-	var filter = $(this).val();
-	$('#runes-list .tab-pane.active .list-group-item').each(function(){
-		var text = $(this).data('runeName');
-		if(text.indexOf(filter) != -1){
-			$(this).removeClass('hidden');
-		}else{
-			$(this).addClass('hidden');
-		}
-	})
-})
-.on('click', '#runes-tabs a', function (e) {
-	e.preventDefault();
-	$('#runes-search').val('').change();
-	//$(this).tab('show')
-})
-.on('change', '#tier-selector input[name="tier-select"]', function (e){
-	var newTier = $(this).val();
-	if(newTier >= 1 && newTier <= 3){
-		LolCalc.currentTier = newTier;
-		$('#runes-search').val('').change();
-		console.log("Switched to Tier#"+newTier);
-		DataLoader.currentTier = newTier;
-		DataLoader.updateRunesList();
-	}
-});
-
-
-/*****************/
-/***** CHAMP *****/
-/*****************/
-$('#current-champion-page')
-.on('click', '#champions-list .champion-img', function (e){
-	e.preventDefault();
-	var champKey = $(this).data('champId');
-	var $selectedChamp = $('#selected-champion');
-	LolCalc.getBuild().champion.key = champKey;
-	$('.champion-largeimg', $selectedChamp).css('background-image', 'url('+DataLoader.getChampionLargeIcon(champKey)+')');
-	$('.champion-spash', $selectedChamp).attr('src', DataLoader.getChampionArtwork(champKey, 0));
-	DataLoader.loadChampionInfo(champKey, function (data){
-		$('.champion-name', $selectedChamp).text(data.name);
-		$('.champion-title', $selectedChamp).text(data.title);
-		$('.champion-largeimg', $selectedChamp).attr('title', data.blurb).tooltip().attr('data-original-title', data.blurb).attr('title', '');
-		console.log(data);
-	});
-})
-.on('click', '#selected-champion .champion-largeimg', function (e){
-	e.preventDefault();
-	DataLoader.loadChampionInfo(LolCalc.getBuild().champion.key, function (data){
-		ModalWindow.display(data.name + ' - ' + data.title, data.lore);
-	});
-});
-
-
-
-
-
-
-
-$('#detail .list-group').on('click', '.stat', function(e){
-	e.preventDefault();
-	$('#detail .list-group .stat').removeClass('active');
-	$(this).addClass('active');
-	var opStat = getOppositStat($(this).data('statName'));
-	$('#detail .list-group .stat.'+opStat).addClass('active');
-	currentStat = $(this).data('statName');
-	doGraph($(this).data('statName'));
-})
-
-/*
-$('.droppable').droppable({
-	accept: function(target){
-		var $this = $(this), $parent = $this.parent();
-		$parent.data('runeType', $parent.attr('data-runeType'));
-		$this.data('runeType', $this.attr('data-runeType'));
-
-		return target.hasClass('draggable') && 
-		(
-			($parent.data('runeType') ==  target.data('runeType')) ||
-			($this.data('runeType') ==  target.data('runeType'))
-		);
-	},
-	hoverClass: 'drop-hover',
-	drop: function(event, ui){
-		var runeId = ui.draggable.data('runeId');
-
-		console.log("Dropped Rune#"+runeId);
-		setFullRune($(this), runeId);
-		updateCurrentRunePage();
-	}
-});
-*/
-var updateLegendTimeout = null;
-var latestPosition = null;
-var legends;
-var plot;
-var currentGraphStat = null;
-$('#graph').on('plothover',  function (event, pos, item) {
-	latestPosition = pos;
-	if (!updateLegendTimeout) {
-		updateLegendTimeout = setTimeout(updateLegend, 50);
-	}
-});
+}
 
 function updateDraggable(){
 	$('.draggable').draggable({
@@ -203,6 +120,7 @@ function updateDraggable(){
 		console.log(ui);
 	});
 }
+
 
 function updateRuneStatsDisplay(){
 	console.log("Updating Rune stats display");

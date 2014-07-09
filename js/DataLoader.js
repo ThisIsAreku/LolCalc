@@ -123,58 +123,16 @@ var DataLoader = new function () {
 
 	this.update = function(category) {
 		var f = 'update'+category.capitalize()+'List';
-		if('function' === typeof this[f])
+		if('function' === typeof this[f]){
+			console.log('launching ' + f);
 			this[f]();
+		}
 	};
 
 	this.updateRunesList = function() {
-		if(this.rune === null){
-			setTimeout(function (){ DataLoader.updateRunesList() }, 1000);
-			return;
-		}
-		var rune, runeId;
-		var runeList = this.getRuneTier();
-		$('#runes-list ul.list-group').empty();
-		for (var i = 0; i < runeList.length; i++) {
-			runeId = runeList[i];
-			rune = this.rune.data[runeId];
-			//console.log(rune);
-			var $li = $('<li class="list-group-item" />').data('runeName', rune.name);
-			var $runePict = $('<a href="#" class="rune-img draggable" />');
-			setRune($runePict, runeId);
-			$li.append($runePict).append('<span class="name">'+rune.name + '</span>');
-			$('#runes-list-'+rune.rune.type+' ul.list-group').append($li);
-		};
-
-
-		$('#runes-list').overscroll({
-			hoverThumbs: true,
-			direction: 'vertical',
-			cancelOn: 'span'
-		});
 
 		
 		//updateDraggable();
-	}
-
-	this.updateChampionsList = function() {
-		var $championsList = $('#champions-list');
-		$championsList.empty();
-		for (var champKey in this.champion.data) {
-			var champ = this.champion.data[champKey];
-			 $('<a />', {
-				'class': 'champion-img',
-				href: '#'+champKey,
-				title: champKey,
-				css: {
-					backgroundImage: 'url("'+this.versions.cdn+'/'+this.versions.n.champion+'/img/sprite/'+champ.image.sprite+'")',
-					backgroundPosition: '-'+champ.image.x+'px -'+champ.image.y+'px'
-				},
-				data: {
-					champId: champKey
-				}
-			}).tooltip().appendTo($championsList);
-		}
 	}
 
 	this.getRuneTier = function(tier) {
@@ -182,8 +140,6 @@ var DataLoader = new function () {
 			tier = this.currentTier;
 		return this.tiers[tier];
 	};
-
-
 
 	this.getChampionLargeIcon = function (key) {
 		return this.versions.cdn+'/'+this.versions.n.champion+'/img/'+this.champion.data[key].image.group+'/'+this.champion.data[key].image.full;
