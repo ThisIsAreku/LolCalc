@@ -32,6 +32,49 @@ var DataLoader = new function () {
 		it.loadMasteries();
 	});
 
+	this.preload = function(){
+		var objectsToPreload = ['rune', 'champion'];
+		var urlsToPreload = [];
+		for (var i = objectsToPreload.length - 1; i >= 0; i--) {
+			var objectsListKey = objectsToPreload[i];
+			var objectsList = this[objectsListKey].data;
+			for(var objectsKey in objectsList){
+				var object = objectsList[objectsKey];
+				var sprite = this.versions.n[objectsListKey]+'/img/sprite/'+object.image.sprite;
+				if(jQuery.inArray(sprite, urlsToPreload) === -1)
+					urlsToPreload.push(sprite);
+				urlsToPreload.push(this.versions.n[objectsListKey]+'/img/'+object.image.group+'/'+object.image.full);
+				if(objectsListKey == 'champion')
+					urlsToPreload.push('img/champion/splash/'+objectsKey+ '_0.jpg');
+			}
+		}
+		console.log(urlsToPreload);
+		var maxThreads = 6;
+		var loadThread = 0;
+		var loadedCount = 0;
+		var loadedMax = urlsToPreload.length;
+		var loadFunc = function (){
+			if(loadedCount == loadedMax)
+				return;
+			if(loadThread >= maxThreads)
+				return setTimeout(loadFunc, 50);
+
+			for (var i = loadedCount; i < urlsToPreload.length && loadThread < maxThreads; i++) {
+				loadThread++;
+				var url = urlsToPreload[i];
+				var img = new Image();
+				$(img).load(function (e){
+					$(it).trigger('loadProgress', [++loadedCount, loadedMax]);
+					loadThread--;
+				})
+				img.src = it.versions.cdn+'/'+url;
+			};
+			setTimeout(loadFunc, 100);
+		};
+		$(it).trigger('loadProgress', [0, loadedMax]);
+		loadFunc();
+	}
+
 	this.loadRunes = function(){
 		var url = this.versions.cdn+'/'+this.versions.n.rune+'/data/fr_FR/rune.json';
 		$.getJSON(url, function(data){
