@@ -11,7 +11,7 @@ var DataLoader = new function () {
 	var loadProgress = 0;
 	var maxLoadProgress = 6;
 	var it = this;
-	var _currentTier = ('undefined' === typeof localStorage.LolCalcProps_CurrentTier ? 1 : localStorage.LolCalcProps_CurrentTier;
+	var _currentTier = ('undefined' === typeof localStorage.LolCalcProps_CurrentTier ? 1 : localStorage.LolCalcProps_CurrentTier);
 	this.versions = null;
 	this.tiers = {};
 	this.rune = null;
