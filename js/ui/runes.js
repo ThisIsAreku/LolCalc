@@ -3,19 +3,12 @@ function RunesUI() {
 }
 RunesUI.prototype.initialize = function() {
 	var it = this;
-	var rune, runeId;
-	var runeList = DataLoader.getRuneTier();
-	$('#runes-list ul.list-group').empty();
-	for (var i = 0; i < runeList.length; i++) {
-		runeId = runeList[i];
-		rune = DataLoader.rune.data[runeId];
-		//console.log(rune);
-		var $li = $('<li class="list-group-item" />').data('runeName', rune.name);
-		var $runePict = $('<a href="#" class="rune-img draggable" />');
-		this.setRune($runePict, runeId);
-		$li.append($runePict).append('<span class="name">'+rune.name + '</span>');
-		$('#runes-list-'+rune.rune.type+' ul.list-group').append($li);
-	};
+	it.updateRunesList();
+	$('#tier-selector input[name="tier-select"]').each(function(){
+		$(this).removeAttr('checked');
+		$(this).parent().removeClass('active');
+	})
+	$('#tier-selector input[name="tier-select"][value="'+DataLoader.getRuneTier()+'"]').attr('checked', true).parent().addClass('active');
 
 
 	$('#runes-list').overscroll({
@@ -64,11 +57,10 @@ RunesUI.prototype.initialize = function() {
 	.on('change', '#tier-selector input[name="tier-select"]', function (e){
 		var newTier = $(this).val();
 		if(newTier >= 1 && newTier <= 3){
-			LolCalc.currentTier = newTier;
 			$('#runes-search').val('').change();
 			console.log("Switched to Tier#"+newTier);
-			DataLoader.currentTier = newTier;
-			DataLoader.updateRunesList();
+			DataLoader.setRuneTier(newTier);
+			it.updateRunesList();
 		}
 	});
 };
@@ -87,6 +79,25 @@ RunesUI.prototype.wakeup = function() {
 RunesUI.prototype.sleep = function() {
 	// body...
 };
+
+
+
+RunesUI.prototype.updateRunesList = function() {
+	var rune, runeId;
+	var runeList = DataLoader.getRunesOfTier();
+	$('#runes-list ul.list-group').empty();
+
+	for (var i = 0; i < runeList.length; i++) {
+		runeId = runeList[i];
+		rune = DataLoader.rune.data[runeId];
+		//console.log(rune);
+		var $li = $('<li class="list-group-item" />').data('runeName', rune.name);
+		var $runePict = $('<a href="#" class="rune-img draggable" />');
+		this.setRune($runePict, runeId);
+		$li.append($runePict).append('<span class="name">'+rune.name + '</span>');
+		$('#runes-list-'+rune.rune.type+' ul.list-group').append($li);
+	};
+}
 
 RunesUI.prototype.setRune = function ($el, runeId){
 	var rune = DataLoader.rune.data[runeId];

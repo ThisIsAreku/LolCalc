@@ -11,7 +11,7 @@ var DataLoader = new function () {
 	var loadProgress = 0;
 	var maxLoadProgress = 6;
 	var it = this;
-	this.currentTier = 1;
+	var _currentTier = localStorage.LolCalcProps_CurrentTier; (_currentTier == undefined ? 1 : _currentTier);
 	this.versions = null;
 	this.tiers = {};
 	this.rune = null;
@@ -129,15 +129,9 @@ var DataLoader = new function () {
 		}
 	};
 
-	this.updateRunesList = function() {
-
-		
-		//updateDraggable();
-	}
-
-	this.getRuneTier = function(tier) {
+	this.getRunesOfTier = function(tier) {
 		if('undefined' === typeof tier)
-			tier = this.currentTier;
+			tier = this.getRuneTier();
 		return this.tiers[tier];
 	};
 
@@ -165,5 +159,17 @@ var DataLoader = new function () {
 			callback(data.data[key], true);
 		});
 		return null;
+	}
+
+
+	this.setRuneTier = function (t) {
+		if(t < 1 || t > 3)
+			return;
+		
+		_currentTier = t;
+		localStorage.LolCalcProps_CurrentTier = t;
+	}
+	this.getRuneTier = function () {
+		return _currentTier;
 	}
 }
